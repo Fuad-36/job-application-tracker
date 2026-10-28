@@ -3,7 +3,8 @@
 
 import Link from "next/link";
 import { useState } from "react";
-
+import { signUp } from "@/lib/auth/auth-client";
+import { useRouter } from "next/navigation";
 import {
   Card,
   CardContent,
@@ -18,11 +19,17 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
 export default function SignUp() {
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+  const router = useRouter();
+
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
 
     if (password !== confirmPassword) {
@@ -31,6 +38,23 @@ export default function SignUp() {
     }
 
     setError("");
+    setLoading(true);
+
+    try{
+      const res = await signUp.email({name,email,password});
+
+      if(res.error){
+        setError(res.error.message || "Failed to signup.");
+      }else{
+        router.push("/dashboard");
+      }
+      
+
+    }catch (err) {
+      setError("An error occurred during sign up. Please try again.");
+    }finally {
+      setLoading(false);
+    }
 
     // TODO: Connect your signup API here.
     console.log("Sign up form submitted");
@@ -46,6 +70,11 @@ export default function SignUp() {
           <CardDescription>
             Enter your details to get started with Job Tracker.
           </CardDescription>
+          {error && (
+            <p  className="rounded-md bg-destructive/15 text-sm text-destructive p-3">
+              {error}
+            </p>
+          )}
         </CardHeader>
 
         <form onSubmit={handleSubmit}>
@@ -56,6 +85,8 @@ export default function SignUp() {
                 id="name"
                 name="name"
                 placeholder="John Doe"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
                 autoComplete="name"
                 required
               />
@@ -68,6 +99,8 @@ export default function SignUp() {
                 name="email"
                 type="email"
                 placeholder="john@example.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 autoComplete="email"
                 required
               />
@@ -107,14 +140,14 @@ export default function SignUp() {
               />
             </div>
 
-            {error && (
+            {/* {error && (
               <p role="alert" className="text-sm text-destructive">
                 {error}
               </p>
-            )}
+            )} */}
 
-            <Button type="submit" className="w-full">
-              Create account
+            <Button type="submit" className="w-full" disabled={loading}>
+              {loading ? "Creating account..." : "Sign up"}
             </Button>
           </CardContent>
         </form>

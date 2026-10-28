@@ -1,4 +1,3 @@
-
 "use client";
 
 import Link from "next/link";
@@ -17,29 +16,60 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
+import { useRouter } from "next/navigation";
+import { signIn } from "@/lib/auth/auth-client";
 
 export default function SignIn() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(true);
 
-  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+  
+
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  const router = useRouter();
+
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
 
-    // TODO: Connect your authentication API here.
-    console.log({ email, password, rememberMe });
+    
+
+    setError("");
+    setLoading(true);
+
+    try {
+      const res = await signIn.email({ email, password, rememberMe });
+
+      if (res.error) {
+        setError(res.error.message || "Failed to Log in.");
+      } else {
+        router.push("/dashboard");
+      }
+    } catch (err) {
+      setError("An error occurred during sign up. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+
+    // TODO: Connect your signup API here.
+    console.log("Log in Submitted");
   }
 
   return (
     <main className="flex min-screen items-center justify-center bg-muted/40 px-4 py-10">
       <Card className="w-full max-w-md shadow-lg">
         <CardHeader className="space-y-2 text-center">
-          <CardTitle className="text-2xl font-bold">
-            Welcome back
-          </CardTitle>
+          <CardTitle className="text-2xl font-bold">Welcome back</CardTitle>
           <CardDescription>
             Sign in to your Job Tracker account.
           </CardDescription>
+          {error && (
+            <p  className="rounded-md bg-destructive/15 text-sm text-destructive p-3">
+              {error}
+            </p>
+          )}
         </CardHeader>
 
         <form onSubmit={handleSubmit}>
@@ -84,9 +114,7 @@ export default function SignIn() {
               <Checkbox
                 id="remember"
                 checked={rememberMe}
-                onCheckedChange={(checked) =>
-                  setRememberMe(checked === true)
-                }
+                onCheckedChange={(checked) => setRememberMe(checked === true)}
               />
 
               <Label
@@ -97,8 +125,8 @@ export default function SignIn() {
               </Label>
             </div>
 
-            <Button type="submit" className="w-full">
-              Sign in
+            <Button type="submit" className="w-full" disabled={loading}>
+              {loading ? "Logging in..." : "Log in"}
             </Button>
           </CardContent>
         </form>
