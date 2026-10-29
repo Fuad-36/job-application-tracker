@@ -46,6 +46,7 @@ export default function SignIn() {
         setError(res.error.message || "Failed to Log in.");
       } else {
         router.push("/dashboard");
+        router.refresh(); // Refreshes Server Components (like NavBar)
       }
     } catch (err) {
       setError("An error occurred during sign up. Please try again.");
