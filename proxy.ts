@@ -7,6 +7,11 @@ export default async function proxy(request: NextRequest) {
     const currentPath = request.nextUrl.pathname;
     const isPublicRoute = publicRoutes.includes(currentPath);
 
+    // Allow Better Auth API endpoints
+    if (currentPath.startsWith("/api/auth")) {
+        return NextResponse.next();
+    }
+
     const session = await getSession();
 
     // Authenticated users should not access auth pages
